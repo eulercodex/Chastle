@@ -26,7 +26,7 @@ var all = {
 
   // Secret for session, you would want to change this and make it an environment variable
   secrets: {
-    session: process.env.SECRET || 'my secret'
+    session: process.env.SESSION || 'my secret'
   },
 
   // List of user roles
