@@ -2,10 +2,7 @@ node_modules
 .tmp
 .sass-cache
 .idea
-.env
 npm-debug.log
 dist
 /config/local.env.js
-.git
 .DS_Store
-Procfile
