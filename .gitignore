@@ -6,3 +6,5 @@ npm-debug.log
 dist
 /config/local.env.js
 .DS_Store
+sample.env
+.git

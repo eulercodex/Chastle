@@ -5,7 +5,7 @@
 module.exports = {
   // MongoDB connection options
   mongo: {
-    uri: 'mongodb://localhost/chatower-dev'
+    uri: 'mongodb://localhost/chastle-dev'
   },
 
   seedDB: false
