@@ -1,0 +1,36 @@
+<div id="loginBody">
+	<div class="container-fluid">
+		<form novalidate name="form" class="form-signin" ng-submit="login(form)">
+			<h2 class="form-signin-heading">Please sign in</h2>
+			<input type="email" name="email" ng-model="user.email" class="form-control" placeholder="Email address" required autofocus>
+			<input type="password" name="password" ng-model="user.password" class="form-control" placeholder="Password" required>
+			<div class="form-group has-error">
+				<p class="help-block" ng-show="form.email.$error.required && form.password.$error.required && submitted">
+					Please enter your email and password.
+				</p>
+				<p class="help-block" ng-show="form.email.$error.email && submitted">
+					Please enter a valid email.
+				</p>
+
+				<p class="help-block">{{ errors.other }}</p>
+			</div>
+			<div>
+				<button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>	
+				<a style="" class="btn btn-default btn-register btn-lg btn-block" href="/signup">Register</a>
+			</div>
+			<hr>
+			<div>
+				
+				<a  class="btn btn-facebook btn-block" href="" ng-click="loginOauth('facebook')">
+					<i class="fa fa-facebook"></i> Connect with Facebook
+				</a>
+				<a  class="btn btn-google-plus btn-block" href="" ng-click="loginOauth('google')">
+					<i class="fa fa-google-plus"></i> Connect with Google+
+				</a>
+				<a  class="btn btn-twitter btn-block" href="" ng-click="loginOauth('twitter')">
+					<i class="fa fa-twitter"></i> Connect with Twitter
+				</a>
+			</div>
+		</form>
+	</div> <!-- /container -->
+</div>
