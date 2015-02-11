@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('chastle')
-  .controller('mainCtrl', function ($scope,Auth,socket,$rootScope,User,$log) {
+.controller('mainCtrl', function ($scope,Auth,socket,$rootScope,User,$log) {
     // Socket listeners
     // ================
     /*THINGS TO IMPROVE
@@ -83,7 +83,7 @@ angular.module('chastle')
         self: false,
         chatroom: false
       });
-       autoScrollById(data.senderId);
+      autoScrollById(data.senderId);
     });
     socket.on('send:room:message', function (data) {
       $rootScope.rooms[data.room].messages.push({
@@ -117,10 +117,11 @@ angular.module('chastle')
     // ===============
 
     $scope.sendPrivateMessage = function (key) {
-      socket.emit('send:private:message', {
-        message: $scope.privateMessageInput[key],
-        receiverId: key
-      });
+      if($scope.privateMessageInput[key]!=='') {
+        socket.emit('send:private:message', {
+          message: $scope.privateMessageInput[key],
+          receiverId: key
+        });
 
       // add the message to our model locally
       if(!$rootScope.private[key]) {
@@ -132,32 +133,35 @@ angular.module('chastle')
         }
       }
       $rootScope.private[key].messages.push({
-          senderName: $scope.currentUser.name,
-          senderId: undefined,
-          message: $scope.privateMessageInput[key],
-          self: true,
-          chatroom: false
+        senderName: $scope.currentUser.name,
+        senderId: undefined,
+        message: $scope.privateMessageInput[key],
+        self: true,
+        chatroom: false
       });
       autoScrollById(key);
+    }
 
       // clear message box
       $scope.privateMessageInput[key] = '';
     };
     $scope.sendRoomMessage = function (key) {
-      socket.emit('send:room:message', {
-        message: $scope.roomMessageInput[key],
-        room: key
-      });
+      if($scope.roomMessageInput[key]!=='') {
+        socket.emit('send:room:message', {
+          message: $scope.roomMessageInput[key],
+          room: key
+        });
 
       // add the message to our model locally
       $rootScope.rooms[key].messages.push({
-          senderName: $scope.currentUser.name,
-          senderId: '',
-          message: $scope.roomMessageInput[key],
-          self: true,
-          chatroom: false
+        senderName: $scope.currentUser.name,
+        senderId: '',
+        message: $scope.roomMessageInput[key],
+        self: true,
+        chatroom: false
       });
       autoScrollById('roomMessagesBox');
+    }
 
       // clear message box
       $scope.roomMessageInput[key] = '';

@@ -31,7 +31,7 @@
 				</div>
 			</div>
 			<form ng-submit='sendRoomMessage(activeRooms[selectedActiveRoomIndex])' class="form-inline">
-				<input style="width: 100%;" ng-model='roomMessageInput[activeRooms[selectedActiveRoomIndex]]' class="form-control" placeholder="Type message here"/>
+				<input style="width: 100%;" ng-model='roomMessageInput[activeRooms[selectedActiveRoomIndex]]' class="form-control" placeholder="Type message here" ng-disabled="activeRooms.length === 0"/>
 			</form>
 		</div>
 		<div class= "col-sm-2">

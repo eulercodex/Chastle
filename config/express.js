@@ -20,7 +20,7 @@ var mongoStore = require('connect-mongo')(session);
 var mongoose = require('mongoose');
 
 module.exports = function(app) {
-  var env = app.get('env');
+  var env = app.get('env'); //same as process.env.NODE_ENV
 
   app.set('views', config.root + '/views');
   app.engine('html', require('hjs').renderFile);
