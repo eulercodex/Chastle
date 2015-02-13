@@ -29,6 +29,10 @@ angular.module('chastle')
     if(!$rootScope.activeRooms) {
       $rootScope.activeRooms = [];
     }
+    if(!$rootScope.roomsArrayToBeFiltered) {
+      $rootScope.roomsArrayToBeFiltered = [];
+    }
+    var connectedUsers = User.query({id:'connected'});
     $scope.privateMessageInput = {};
 
 
@@ -39,11 +43,13 @@ angular.module('chastle')
           messages: [],
           userIsParticipating: false
         }
+        $rootScope.roomsArrayToBeFiltered.push({'room':room, 'numberOfUsers':rooms[room].users.length});
       }
     });
 
     socket.on('update', function (rooms) {
       var tempRooms = {};
+      $rootScope.roomsArrayToBeFiltered = [];
       for (var room in rooms) {
         if(!$rootScope.rooms[room]) {
           tempRooms[room] = {
@@ -57,8 +63,11 @@ angular.module('chastle')
           messages: $rootScope.rooms[room].messages,
           userIsParticipating: $rootScope.rooms[room].userIsParticipating
         };
+        $rootScope.roomsArrayToBeFiltered.push({'room':room, 'numberOfUsers':rooms[room].users.length});
       }
       $rootScope.rooms = angular.copy(tempRooms);
+      connectedUsers = User.query({id:'connected'});
+      if ($scope.usersListOption === 0) $scope.displayedUsersList = connectedUsers;
     });
 
     socket.on('joined:room', function (data) {
@@ -81,7 +90,8 @@ angular.module('chastle')
         senderName: data.senderName,
         message: data.message,
         self: false,
-        chatroom: false
+        chatroom: false,
+        dateSent: data.dateSent
       });
       autoScrollById(data.senderId);
     });
@@ -91,12 +101,12 @@ angular.module('chastle')
         senderId: data.senderId,
         message: data.message,
         self: false,
-        chatroom: false
+        chatroom: false,
+        dateSent: data.dateSent
       });
       autoScrollById('roomMessagesBox');
     });
     socket.on('user:disconnected', function (data) {
-      $log.log('user:disconnected');
       if($rootScope.private[data.senderId]) {
         $rootScope.private[data.senderId].disabled = true;
         $rootScope.private[data.senderId].messages.push({
@@ -118,50 +128,53 @@ angular.module('chastle')
 
     $scope.sendPrivateMessage = function (key) {
       if($scope.privateMessageInput[key]!=='') {
+        var newDate = new Date();
         socket.emit('send:private:message', {
           message: $scope.privateMessageInput[key],
-          receiverId: key
+          receiverId: key,
+          dateSent: newDate
         });
-
-      // add the message to our model locally
-      if(!$rootScope.private[key]) {
-        $rootScope.private[key] = {
-          messages: [],
-          disabled: false,
-          isChatTabOpened:true,
-          senderName: giveMeUserPublicProfileUsingId(key)
+        // add the message to our model locally
+        if(!$rootScope.private[key]) {
+          $rootScope.private[key] = {
+            messages: [],
+            disabled: false,
+            isChatTabOpened:true,
+            senderName: giveMeUserPublicProfileUsingId(key)
+          }
         }
+        $rootScope.private[key].messages.push({
+          senderName: $scope.currentUser.name,
+          senderId: undefined,
+          message: $scope.privateMessageInput[key],
+          self: true,
+          chatroom: false,
+          dateSent: newDate
+        });
+        autoScrollById(key);
       }
-      $rootScope.private[key].messages.push({
-        senderName: $scope.currentUser.name,
-        senderId: undefined,
-        message: $scope.privateMessageInput[key],
-        self: true,
-        chatroom: false
-      });
-      autoScrollById(key);
-    }
-
       // clear message box
       $scope.privateMessageInput[key] = '';
     };
     $scope.sendRoomMessage = function (key) {
       if($scope.roomMessageInput[key]!=='') {
+        var newDate = new Date();
         socket.emit('send:room:message', {
           message: $scope.roomMessageInput[key],
-          room: key
+          room: key,
+          dateSent: newDate
         });
-
-      // add the message to our model locally
-      $rootScope.rooms[key].messages.push({
-        senderName: $scope.currentUser.name,
-        senderId: '',
-        message: $scope.roomMessageInput[key],
-        self: true,
-        chatroom: false
-      });
-      autoScrollById('roomMessagesBox');
-    }
+        // add the message to our model locally
+        $rootScope.rooms[key].messages.push({
+          senderName: $scope.currentUser.name,
+          senderId: '',
+          message: $scope.roomMessageInput[key],
+          self: true,
+          chatroom: false,
+          dateSent: newDate
+        });
+        autoScrollById('roomMessagesBox');
+      }
 
       // clear message box
       $scope.roomMessageInput[key] = '';
@@ -196,7 +209,6 @@ angular.module('chastle')
           isChatTabOpened: true,
           user: giveMeUserPublicProfileUsingId(userId)
         }
-        $log.log($rootScope.private[userId].isChatTabOpened);
       }
     };
     $scope.closePrivateMessage = function(userId) {
@@ -218,4 +230,28 @@ angular.module('chastle')
         document.getElementById(elementId).scrollTop = document.getElementById(elementId).scrollHeight;
       },0);
     };
+    $scope.usersListOption = 0;
+
+    $scope.displayedUsersList = connectedUsers;
+
+    $scope.changeUsersList = function (index) {
+      if (index === 0 && $scope.usersListOption !== 0 ) {
+        $scope.usersListOption = 0;
+        $scope.displayedUsersList = connectedUsers;
+      }
+      else if (index === 1 && $scope.usersListOption !== 1 ) {
+        $scope.usersListOption = 1;
+        $scope.displayedUsersList = $rootScope.rooms[$rootScope.activeRooms[$scope.selectedActiveRoomIndex]].users
+      }
+    };
+    
+    /* reeimplementation of the filter function
+    $scope.userNameFilter = '';
+    $scope.filterFunction = function (user,index) {
+      if ($scope.userNameFilter.length) {
+        return (user.name.toLowerCase().search($scope.userNameFilter.toLowerCase()) === -1) ? false : true;
+      }
+      else return true;
+    };
+    */
   });

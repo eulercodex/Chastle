@@ -14,7 +14,6 @@ var validationError = function(res, err) {
  * restriction: 'admin'
  */
 exports.index = function(req, res) {
-  console.log(req.headers);
   User.find({}, '-salt -hashedPassword', function (err, users) {
     if(err) return res.status(500).send(err);
     res.status(200).json(users);
@@ -25,12 +24,8 @@ exports.index = function(req, res) {
  * Creates a new user
  */
 exports.create = function (req, res, next) {
-  console.log(req.body);
   var newUser = new User(req.body);
   newUser.provider = 'local';
-  //newUser.role = 'user';
-  //newUser.created = new Date();
-  //newUser.modified = new Date();
   newUser.save(function(err, user) {
     if (err) return validationError(res, err);
     var token = jwt.sign(user.token, config.secrets.session, { expiresInMinutes: 60*5 });
@@ -43,7 +38,6 @@ exports.create = function (req, res, next) {
  */
 exports.show = function (req, res, next) {
   var userId = req.params.id;
-
   User.findById(userId, function (err, user) {
     if (err) return next(err);
     if (!user) return res.status(401).send('Unauthorized');
@@ -88,16 +82,21 @@ exports.destroy = function(req, res) {
  * Get my info
  */
 exports.me = function(req, res, next) {
-  var userId = req.user._id;
   User.findOne({
-    _id: userId
+    _id: req.user._id
   }, '-salt -hashedPassword', function(err, user) { // don't ever give out the password or salt
     if (err) return next(err);
     if (!user) return res.status(401).send('Unauthorized');
     res.json(user);
   });
 };
-
+exports.connected = function(req,res,next) {
+  User.find({online: true},'-salt -hashedPassword', function(err,users) {
+    if (err) return res.status(500).send(err);
+    if(!users) return res.end('no user found');
+    res.json(users);
+  });
+};
 /**
  * Authentication callback
  */

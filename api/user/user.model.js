@@ -9,10 +9,7 @@ var UserSchema = new Schema({
     email: { type: String, lowercase: true },
     name: String,
     username: String,
-    role: {
-      type: String,
-      default: 'user'
-    },
+    role: { type: String,default: 'user' },
     //age: Number,
     hashedPassword: String,
     provider: String,
@@ -21,14 +18,9 @@ var UserSchema = new Schema({
     google: {},
     facebook: {},
     github: {},
-    created: {
-      type: Date,
-      default: new Date()
-    },
-    modified: {
-      type: Date,
-      default: new Date()
-    }
+    created: { type: Date, default: new Date() },
+    modified: { type: Date, default: new Date() },
+    online: { type: Boolean, default: false }
 });
 
 /**
@@ -54,6 +46,9 @@ UserSchema
   .get(function() {
     return {
       'name': this.name,
+      'online': this.online,
+      'created': this.created,
+      'modified': this.modified
     };
   });
 

@@ -2,17 +2,18 @@
  * Socket.io configuration
  */
 
-'use strict';
+ 'use strict';
 
-var config = require('./config/environment');
+ var config = require('./config/environment');
+ var User = require('./api/user/user.model');
 
-var rooms = (function() {
+ var rooms = (function() {
   var rooms = {};
 
   //private helper
   var findUserIndexInUsers = function (room,user) {
     for (var i = 0; i < rooms[room].users.length; i++) {
-      if (rooms[room].users[i].userID === user.userID) {
+      if (rooms[room].users[i]._id === user._id) {
         return i;
       }
     }
@@ -48,13 +49,21 @@ var rooms = (function() {
 
 // When the user disconnects.. perform this
 function onDisconnect(socket) {
+  User.findById(socket.decoded_token._id, function (err, user) {
+    if (err) return console.log(err);
+    if (!user) return console.log('user not found');
+    user.online = false;
+    user.save(function(err) {
+      if (err) console.log(err);
+    });
+  });
   for (var i = 0; i < socket.joinedRooms.length; i++) {
     socket.to(socket.joinedRooms[i]).emit('left:room', {
         //senderId: socket.decoded_token._id,
         senderName: socket.decoded_token.name,
         room: socket.joinedRooms[i]
-    });
-    rooms.leaveRoom(socket.joinedRooms[i],{userID:socket.decoded_token._id,userName:socket.decoded_token.name});
+      });
+    rooms.leaveRoom(socket.joinedRooms[i],{_id:socket.decoded_token._id,name:socket.decoded_token.name});
     socket.broadcast.emit('update', rooms.get());
 
   }
@@ -69,18 +78,23 @@ function onDisconnect(socket) {
 // When the user connects.. perform this
 function onConnect(socket) {
   //implementation starts here
+  User.findById(socket.decoded_token._id, function (err, user) {
+    if (err) return console.log(err);
+    if (!user) return console.log('user not found');
+    user.online = true;
+    user.save(function(err) {
+      if (err) console.log(err);
+    });
+  });
   socket.join(socket.decoded_token._id);
-  socket.join('some random room');
   socket.emit('init', rooms.get());
- 
-
   socket.on('join:room', function (data,cb) { 
     var index = socket.joinedRooms.indexOf(data.room);
     if (index === -1) {
       cb();
       socket.join(data.room);
       socket.joinedRooms.push(data.room);
-      rooms.joinRoom(data.room,{userID:socket.decoded_token._id,userName:socket.decoded_token.name});
+      rooms.joinRoom(data.room,{_id:socket.decoded_token._id,name:socket.decoded_token.name});
       socket.emit('update',rooms.get());
       socket.broadcast.emit('update',rooms.get());
       socket.broadcast.to(data.room).emit('joined:room', {
@@ -96,7 +110,7 @@ function onConnect(socket) {
       cb();
       socket.leave(data.room);
       socket.joinedRooms.splice(index,1);
-      rooms.leaveRoom(data.room,{userID:socket.decoded_token._id,userName:socket.decoded_token.name});
+      rooms.leaveRoom(data.room,{_id:socket.decoded_token._id,name:socket.decoded_token.name});
       socket.emit('update',rooms.get());
       socket.broadcast.emit('update',rooms.get());
       socket.to(data.room).emit('left:room', {
@@ -111,7 +125,8 @@ function onConnect(socket) {
     socket.broadcast.to(data.receiverId).emit('send:private:message', {
       senderId: socket.decoded_token._id,
       senderName: socket.decoded_token.name,
-      message: data.message
+      message: data.message,
+      dateSent: data.dateSent
     });
     if(socket.activePrivateChatUsersID.indexOf(data.receiverId) === -1) {
       socket.activePrivateChatUsersID.push(data.receiverId);
@@ -123,7 +138,8 @@ function onConnect(socket) {
       senderId: socket.decoded_token._id,
       senderName: socket.decoded_token.name,
       message: data.message,
-      room: data.room
+      room: data.room,
+      dateSent: data.dateSent
     });
   });
 
@@ -151,9 +167,10 @@ module.exports = function (socketio) {
   }));
 
   socketio.on('connection', function (socket) {
+
     socket.address = socket.handshake.address !== null ?
-            socket.handshake.address.address + ':' + socket.handshake.address.port :
-            process.env.DOMAIN;
+    socket.handshake.address.address + ':' + socket.handshake.address.port :
+    process.env.DOMAIN;
 
     socket.connectedAt = new Date();
     socket.joinedRooms = [];

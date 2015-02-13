@@ -4,6 +4,8 @@
 html,body,#ui-view {
   width: 100%;
   height: 100%;
+  margin: 0;
+  padding: 0;
 }
 #loginBody {
   padding-top: 40px;
@@ -29,8 +31,8 @@ html,body,#ui-view {
 .form-signin .form-control {
   position: relative;
   -webkit-box-sizing: border-box;
-     -moz-box-sizing: border-box;
-          box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   padding: 10px;
   font-size: 16px;
 }
@@ -52,7 +54,7 @@ html,body,#ui-view {
 
 #roomsBox {
   padding: 10px 10px;
-  margin-top: 5px;
+  margin: 5px 0;
   border-radius: 4px;
 }
 .roomsList {
@@ -64,6 +66,7 @@ html,body,#ui-view {
 #usersBox {
   padding: 2.5px;
   border-radius: 4px;
+  margin: 5px 0;
 }
 #usersBox button {
   margin: 2.5px;
@@ -92,148 +95,147 @@ html,body,#ui-view {
 .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
 
 /* Chat bubbles */
- .box {
-    border: 1px solid red;
-    padding: 0;
+.box {
+  border: 1px solid red;
+  padding: 0;
 }
-.message span{
-    color: #aaa;
-    font-size: 12px;
+.message small{
+  color: #aaa;
 }
 
 .message {
-    /*border: 1px solid #eee;*/
-    margin: 10px 4px;
+  /*border: 1px solid #eee;*/
+  margin: 10px 4px;
 }
-   .bubble-self {
-    position: relative;
-    max-width: 90%;
-    height: auto;
-    padding: 4px;
-    background: #1589F9;
-    -webkit-border-radius: 7px;
-    -moz-border-radius: 7px;
-    border-radius: 7px;
-    float:right;
-    color: #FFF;
-    margin-right: 10px;
-    white-space: pre-wrap;
-    word-wrap: break-word;
+.bubble-self {
+  position: relative;
+  max-width: 90%;
+  height: auto;
+  padding: 4px;
+  background: #1589F9;
+  -webkit-border-radius: 7px;
+  -moz-border-radius: 7px;
+  border-radius: 7px;
+  float:right;
+  color: #FFF;
+  margin-right: 10px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
-  .bubble-self:after {
-    content: "";
-    position: absolute;
-    top: 10px;
-    right: -10px;
-    border-style: solid;
-    border-width: 4px 0 4px 10px;
-    border-color: transparent #1589F9;
-    display: block;
-    width: 0;
-    z-index: 1;
-    /*fixes a conflict with bootstrap line height in Firefox */
-    line-height: 0px;
+.bubble-self:after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  right: -10px;
+  border-style: solid;
+  border-width: 4px 0 4px 10px;
+  border-color: transparent #1589F9;
+  display: block;
+  width: 0;
+  z-index: 1;
+  /*fixes a conflict with bootstrap line height in Firefox */
+  line-height: 0px;
 }
 .bubble {
-    position: relative;
-    max-width: 90%;
-    height: auto;
-    padding: 4px;
-    background: #E5E5EA;
-    -webkit-border-radius: 7px;
-    -moz-border-radius: 7px;
-    border-radius: 7px;
-    float:left;
-    color: #000;
-    margin-left: 10px;
-    white-space: pre-wrap;
-    word-wrap: break-word;
+  position: relative;
+  max-width: 90%;
+  height: auto;
+  padding: 4px;
+  background: #E5E5EA;
+  -webkit-border-radius: 7px;
+  -moz-border-radius: 7px;
+  border-radius: 7px;
+  float:left;
+  color: #000;
+  margin-left: 10px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
-  .bubble:after {
-    content: "";
-    position: absolute;
-    top: 10px;
-    left: -10px;
-    border-style: solid;
-    border-width: 4px 10px 4px 0;
-    border-color: transparent #E5E5EA;
-    display: block;
-    width: 0;
-    z-index: 1;
-    /*fixes a conflict with bootstrap line height in Firefox */
-    line-height: 0px;
+.bubble:after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: -10px;
+  border-style: solid;
+  border-width: 4px 10px 4px 0;
+  border-color: transparent #E5E5EA;
+  display: block;
+  width: 0;
+  z-index: 1;
+  /*fixes a conflict with bootstrap line height in Firefox */
+  line-height: 0px;
 }
 /*private message style */
 .privateMsgTabContainer {
-    position: fixed;
-    bottom: 0px;
-    width: auto;
-    height: 34px;
-    margin-left: 0px;
+  position: fixed;
+  bottom: 0px;
+  width: auto;
+  height: 34px;
+  margin-left: 0px;
 }
 .privateMsgTab {
-    margin-left: 10px;
+  margin-left: 10px;
 }
 .privateMsgTabHead {
-    width: 150px;
-    height:34px;
-    line-height: 34px;
-    padding: 0 10px 0 10px;
-    background-color: #eee;
-    border-top-left-radius:4px;
-    border-top-right-radius:4px;
+  width: 150px;
+  height:34px;
+  line-height: 34px;
+  padding: 0 10px 0 10px;
+  background-color: #eee;
+  border-top-left-radius:4px;
+  border-top-right-radius:4px;
 }
 .privateMsgTabContent {
-    position: relative;
-    width: 250px;
-    height: 250px;
-    bottom: 216px; /*height-34*/
-    background-color: #fbfbfb;
-    border-left: 1px solid #eee;
-    border-right: 1px solid #eee;
-    border-top-left-radius:4px;
-    border-top-right-radius:4px;
+  position: relative;
+  width: 250px;
+  height: 250px;
+  bottom: 216px; /*height-34*/
+  background-color: #fbfbfb;
+  border-left: 1px solid #eee;
+  border-right: 1px solid #eee;
+  border-top-left-radius:4px;
+  border-top-right-radius:4px;
 }
 .privateMsgTabHead button {
-    position:relative;
-    top: 5px;
+  position:relative;
+  top: 5px;
 }
 .privateMsgTabHead div {
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space: nowrap;
-    width:115px;
-    display:inline-block;
-    font-weight:700;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space: nowrap;
+  width:115px;
+  display:inline-block;
+  font-weight:700;
 }
 .privateMsgTabContent form {
-    margin: 0 5px;
-    width:238px; /*parent width - margin left and right - border left right*/
-    position: fixed;
-    bottom: 0px;
+  margin: 0 5px;
+  width:238px; /*parent width - margin left and right - border left right*/
+  position: fixed;
+  bottom: 0px;
 }
 .privateMsgTabContentHead {
-    border-top-left-radius:4px;
-    border-top-right-radius:4px;
-    padding: 0 15px;
+  border-top-left-radius:4px;
+  border-top-right-radius:4px;
+  padding: 0 15px;
 }
 .privateMsgTabContentHead div{
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space: nowrap;
-    width:150px;
-    display:inline-block;
-    font-weight:700;
-    line-height: 35px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space: nowrap;
+  width:150px;
+  display:inline-block;
+  font-weight:700;
+  line-height: 35px;
 }
 .privateMsgTabContentHead button {
-    position:relative;
-    top: 7px;
+  position:relative;
+  top: 7px;
 }
 .privateMsgTabContentScrollable {
-    width: auto;
-    height:176px; /*parent height - (40+34)*/
-    overflow-y: auto;
+  width: auto;
+  height:176px; /*parent height - (40+34)*/
+  overflow-y: auto;
 }

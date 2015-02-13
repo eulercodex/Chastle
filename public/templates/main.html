@@ -7,38 +7,50 @@
 				<input style="width: 100%;" placeholder='Create room' ng-model='newRoom' class="form-control"/>
 			</form>
 			<div id="roomsBox" class="overflowable">
-				<div class="roomsList clearfix" ng-repeat="(key, value) in rooms">
-					<div class="pull-left">{{key}}&nbsp<span class="badge">{{value.users.length}}</span></div>
-					<button ng-hide="value.userIsParticipating" ng-click="joinRoom(key)" class="btn btn-primary btn-xs pull-right">Join</button>
-					<button ng-show="value.userIsParticipating" ng-click="leaveRoom(key)" class="btn btn-danger btn-xs pull-right">Leave</button>
+				<div class="roomsList clearfix" ng-repeat="room in roomsArrayToBeFiltered | filter: searchTerm | orderBy:'-numberOfUsers'">
+					<div class="pull-left">{{room.room}}&nbsp<span class="badge">{{room.numberOfUsers}}</span></div>
+					<button ng-hide="rooms[room.room].userIsParticipating" ng-click="joinRoom(room.room)" class="btn btn-primary btn-xs pull-right">Join</button>
+					<button ng-show="rooms[room.room].userIsParticipating" ng-click="leaveRoom(room.room)" class="btn btn-danger btn-xs pull-right">Leave</button>
 				</div>
 			</div>
+			<input style="width: 100%;" placeholder='Search for a room' ng-model='searchTerm' class="form-control"/>
 		</div>
 		<div class= "col-sm-6">
 			<h4>Room Messages</h4>
 			<ul ng-show="activeRooms.length" class="nav nav-tabs">
-				<li role="presentation" ng-repeat="room in activeRooms" ng-class="{active : $index === selectedActiveRoomIndex}">
+				<li role="presentation" ng-repeat="room in activeRooms" ng-class="{active : $index === selectedActiveRoomIndex}" ng-click="selectActiveRoom($index)">
 					<a>
-						<span ng-click="selectActiveRoom($index)">{{room}}&nbsp</span>
+						<span>{{room}}&nbsp</span>
 						<button ng-click="leaveRoom(room)" type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 					</a>
 				</li>
 			</ul>
 			<div id="roomMessagesBox" class="overflowable">
-				<div class="message clearfix" ng-repeat='message in rooms[activeRooms[selectedActiveRoomIndex]].messages'> 
-					<span ng-hide="message.self" class="clearfix">{{message.senderName}}</span>
+				<div class="message clearfix" ng-repeat='message in rooms[activeRooms[selectedActiveRoomIndex]].messages'>
+					<div class="text-center"><small>{{message.dateSent | date: "EEE, MMM d, yy 'at' h:mm:ss a"}}</small></div> 
+					<span ng-hide="message.self" class="clearfix"><small>{{message.senderName}}</small></span>
 					<div ng-class="{'bubble': !message.self,'bubble-self':message.self}">{{message.message}}</div>
 				</div>
 			</div>
 			<form ng-submit='sendRoomMessage(activeRooms[selectedActiveRoomIndex])' class="form-inline">
-				<input style="width: 100%;" ng-model='roomMessageInput[activeRooms[selectedActiveRoomIndex]]' class="form-control" placeholder="Type message here" ng-disabled="activeRooms.length === 0"/>
+				<input style="width: 100%;" ng-model='roomMessageInput[activeRooms[selectedActiveRoomIndex]]' class="form-control" placeholder="Type message" ng-disabled="activeRooms.length === 0"/>
 			</form>
 		</div>
 		<div class= "col-sm-2">
 			<h4>Users</h4>
-			<div id="usersBox" class="overflowable">
-				<button class="btn btn-default btn-xs" ng-repeat='user in rooms[activeRooms[selectedActiveRoomIndex]].users' ng-click="openPrivateMessage(user.userID)"> {{user.userName}} </button>
+			<div class="btn-group btn-group-justified" role="group" ng-hide="activeRooms.length === 0" aria-label="...">
+				<div class="btn-group" role="group">
+					<button type="button" class="btn" ng-click="changeUsersList(0)" ng-class="{'btn-success':usersListOption===0,'btn-default':usersListOption===1}">All</button>
+				</div>
+				<div class="btn-group" role="group">
+					<button type="button" class="btn" ng-click="changeUsersList(1)" ng-class="{'btn-success':usersListOption===1,'btn-default':usersListOption===0}">{{activeRooms[selectedActiveRoomIndex]}}</button>
+				</div>
 			</div>
+			<div id="usersBox" class="overflowable">
+				<button class="btn btn-default btn-xs" ng-repeat="user in displayedUsersList | filter : userFilter" ng-click="openPrivateMessage(user._id)"> {{user.name}} </button>
+			</div>
+			<input style="width: 100%;" placeholder='Search for a user' ng-model='userFilter.name' class="form-control"/>
+
 		</div>
 	</div>
 	<!--Private Messages implementation-->
@@ -56,13 +68,16 @@
 				</div>
 				<div class="privateMsgTabContentScrollable" id="{{key}}">
 					<div class="message clearfix" ng-repeat='message in private[key].messages'>
-						<span ng-hide="message.self" class="clearfix">{{message.senderName}}</span>
+						<div class="text-center"><small>{{message.dateSent | date: "EEE, MMM d, yy 'at' h:mm:ss a"}}</small></div> 
+						<span ng-hide="message.self" class="clearfix"><small>{{message.senderName}}</small></span>
 						<div ng-class="{'bubble': !message.self,'bubble-self':message.self}">{{message.message}}</div>
 					</div>
 				</div>
-				<form ng-submit='sendPrivateMessage(key)'> 
-					<input ng-model="privateMessageInput[key]" class="form-control" placeholder="Type message here"/>
-				</form>
+				<div>
+					<form ng-submit='sendPrivateMessage(key)'> 
+						<input ng-model="privateMessageInput[key]" class="form-control" placeholder="Type message"/>
+					</form>
+				</div>
 			</div>
 		</div>
 	</div>
