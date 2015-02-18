@@ -237,6 +237,9 @@ angular.module('chastle')
         if ($rootScope.rooms[room].userIsParticipating) {
           $rootScope.rooms[room].messages = [];
           $rootScope.rooms[room].userIsParticipating = false;
+          var index = $rootScope.activeRooms.indexOf(room);
+          if(index < $scope.selectedActiveRoomIndex) $scope.selectedActiveRoomIndex--;
+          else if(index===$scope.selectedActiveRoomIndex) $scope.selectedActiveRoomIndex = 0;
           $rootScope.activeRooms.splice($rootScope.activeRooms.indexOf(room),1);
         }
       });
