@@ -88,6 +88,11 @@ function onConnect(socket) {
   });
   socket.join(socket.decoded_token._id);
   socket.emit('init', rooms.get());
+
+  socket.on('need update',function() {
+    socket.emit('update', rooms.get());
+  });
+
   socket.on('join:room', function (data,cb) { 
     var index = socket.joinedRooms.indexOf(data.room);
     if (index === -1) {

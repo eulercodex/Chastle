@@ -60,8 +60,10 @@ html,body,#ui-view {
 .roomsList {
   margin-bottom: 5px;
 }
-#roomMessagesBox {
+.roomMessagesBox {
   margin-bottom: 5px;
+  padding: 5px;
+  z-index: 1001;
 }
 #usersBox {
   padding: 2.5px;
@@ -104,15 +106,30 @@ html,body,#ui-view {
 }
 
 .message {
-  /*border: 1px solid #eee;*/
+  /*
+  border: 1px solid #eee;
   margin: 10px 4px;
+  */
 }
+.notNewMessage {
+  background-color: #E5E5EA;
+}
+.notNewMessage:after {
+  border-color: transparent #E5E5EA;
+}
+.newMessage {
+  background-color: #FFE0B2;
+}
+.newMessage:after {
+  border-color: transparent #FFE0B2;
+}
+
 .bubble-self {
   position: relative;
   max-width: 90%;
   height: auto;
   padding: 4px;
-  background: #1589F9;
+  background-color: #1589F9;
   -webkit-border-radius: 7px;
   -moz-border-radius: 7px;
   border-radius: 7px;
@@ -142,7 +159,6 @@ html,body,#ui-view {
   max-width: 90%;
   height: auto;
   padding: 4px;
-  background: #E5E5EA;
   -webkit-border-radius: 7px;
   -moz-border-radius: 7px;
   border-radius: 7px;
@@ -160,7 +176,6 @@ html,body,#ui-view {
   left: -10px;
   border-style: solid;
   border-width: 4px 10px 4px 0;
-  border-color: transparent #E5E5EA;
   display: block;
   width: 0;
   z-index: 1;
@@ -186,6 +201,53 @@ html,body,#ui-view {
   background-color: #eee;
   border-top-left-radius:4px;
   border-top-right-radius:4px;
+}
+.privateMsgTabHead-new {
+    /*CSS animation*/
+    -webkit-animation-duration: 1s;
+    -webkit-animation-name: newPrivateMessage;
+    -webkit-animation-iteration-count: infinite;
+    -moz-animation-duration: 1s;
+    -moz-animation-name: newPrivateMessage;
+    -moz-animation-iteration-count: infinite;
+    -o-animation-duration: 1s;
+    -o-animation-name: newPrivateMessage;
+    -o-animation-iteration-count: infinite;
+    animation-duration: 1s;
+    animation-name: newPrivateMessage;
+    animation-iteration-count: infinite;
+}
+@-webkit-keyframes newPrivateMessage {
+  from { 
+    background-color: #eee;
+  }
+  to {
+    background-color: #FFE0B2;
+  }
+}
+@-moz-keyframes newPrivateMessage {
+  from {
+    background-color: #eee;
+  }
+  to {
+    background-color: #FFE0B2;
+  }
+}
+@-o-keyframes newPrivateMessage {
+  from {
+    background-color: #eee;
+  }
+  to {
+    background-color: #FFE0B2;
+  }
+}
+@-keyframes newPrivateMessage {
+  from {
+    background-color: #eee;
+  }
+  to {
+    background-color: #FFE0B2;
+  }
 }
 .privateMsgTabContent {
   position: relative;
@@ -238,4 +300,109 @@ html,body,#ui-view {
   width: auto;
   height:176px; /*parent height - (40+34)*/
   overflow-y: auto;
+}
+navig{
+}
+.navig-tabs {
+    position:relative;
+    top:1px;
+    border: 1px solid #eee;
+    border-bottom: 0px;
+    border-top-left-radius:4px;
+    border-top-right-radius:4px;
+    margin-right: 2px;
+    height:39px;
+    line-height:37px;
+    padding: 0 10px;
+    cursor: pointer;
+}
+.navig-tabs-active {
+    z-index: 1010;
+    background-color: white;
+    font-weight: bold;
+}
+.navig-tabs-nonactive {
+    opacity: 0.50;
+}
+.navig-tabs-nonactive:hover {
+    opacity: 1.0;
+    background-color: #ccc;
+    color:white;
+}
+.navig-tabs-nonactive-new {
+    /*CSS animation*/
+    -webkit-animation-duration: 1s;
+    -webkit-animation-name: newRoomMessage;
+    -webkit-animation-iteration-count: infinite;
+    -moz-animation-duration: 1s;
+    -moz-animation-name: newRoomMessage;
+    -moz-animation-iteration-count: infinite;
+    -o-animation-duration: 1s;
+    -o-animation-name: newRoomMessage;
+    -o-animation-iteration-count: infinite;
+    animation-duration: 1s;
+    animation-name: newRoomMessage;
+    animation-iteration-count: infinite;
+}
+.navig-tabs-nonactive-new:hover {
+    -webkit-animation: 0;
+    -moz-animation: 0;
+    -o-animation: 0;
+    animation: 0;
+    opacity:1.0;
+    background-color: #FFE0B2;
+    color: white;
+}
+@-webkit-keyframes newRoomMessage {
+  from { 
+    opacity: 0.5;
+    background-color: white;
+  }
+
+  to {
+    opacity: 0.7;
+    background-color: #FFE0B2;
+    color:#bbb;
+  }
+}
+@-moz-keyframes newRoomMessage {
+  from { 
+    opacity: 0.5;
+    background-color: white;
+  }
+
+  to {
+    opacity: 0.7;
+    background-color: #FFE0B2;
+    color:#bbb;
+  }
+}
+@-o-keyframes newRoomMessage {
+  from { 
+    opacity: 0.5;
+    background-color: white;
+  }
+
+  to {
+    opacity: 0.7;
+    background-color: #FFE0B2;
+    color:#bbb;
+  }
+}
+@-keyframes newRoomMessage {
+  from { 
+    opacity: 0.5;
+    background-color: white;
+  }
+
+  to {
+    opacity: 0.7;
+    background-color: #FFE0B2;
+    color:#bbb;
+  }
+}
+
+.navig-tabs .close {
+    position:relative;
+    top:6px;
 }

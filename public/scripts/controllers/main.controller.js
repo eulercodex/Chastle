@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('chastle')
-.controller('mainCtrl', function ($scope,Auth,socket,$rootScope,User,$log) {
+  .controller('mainCtrl', function ($scope,Auth,socket,$rootScope,User,$log,$timeout) {
     // Socket listeners
     // ================
     /*THINGS TO IMPROVE
@@ -35,16 +35,25 @@ angular.module('chastle')
     var connectedUsers = User.query({id:'connected'});
     $scope.privateMessageInput = {};
 
+    socket.reconnect();
+
 
     socket.on('init', function (rooms) {
       for (var room in rooms) {
         $rootScope.rooms[room] = {
           users: rooms[room].users,
           messages: [],
-          userIsParticipating: false
+          userIsParticipating: false,
+          gotNewMessage: false,
+          newMessageCount: 0
         }
         $rootScope.roomsArrayToBeFiltered.push({'room':room, 'numberOfUsers':rooms[room].users.length});
       }
+    });
+    socket.on('reconnect', function (number) {
+      $rootScope.activeRooms = [];
+      socket.emit('need update',{});
+      $log.log('reconnected after trying '+number+' times.');
     });
 
     socket.on('update', function (rooms) {
@@ -55,13 +64,17 @@ angular.module('chastle')
           tempRooms[room] = {
             users: rooms[room].users,
             messages: [],
-            userIsParticipating: false
+            userIsParticipating: false,
+            gotNewMessage: false,
+            newMessageCount: 0
           };
         }
         else tempRooms[room] = {
           users: rooms[room].users,
           messages: $rootScope.rooms[room].messages,
-          userIsParticipating: $rootScope.rooms[room].userIsParticipating
+          userIsParticipating: $rootScope.rooms[room].userIsParticipating,
+          gotNewMessage: $rootScope.rooms[room].gotNewMessage,
+          newMessageCount: $rootScope.rooms[room].newMessageCount
         };
         $rootScope.roomsArrayToBeFiltered.push({'room':room, 'numberOfUsers':rooms[room].users.length});
       }
@@ -81,8 +94,9 @@ angular.module('chastle')
         $rootScope.private[data.senderId] = {
           messages : [],
           disabled: false,
-          isChatTabOpened:true,
-          user: giveMeUserPublicProfileUsingId(data.senderId)
+          isChatTabOpened:false,
+          user: giveMeUserPublicProfileUsingId(data.senderId),
+          newMessageCount: 0
         };
         $scope.privateMessageInput[data.senderId]='';
       }
@@ -91,26 +105,38 @@ angular.module('chastle')
         message: data.message,
         self: false,
         chatroom: false,
-        dateSent: data.dateSent
+        dateSent: data.dateSent,
+        newMessage: !$rootScope.private[data.senderId].isChatTabOpened
       });
-      autoScrollById(data.senderId);
+      if(!$rootScope.private[data.senderId].isChatTabOpened) {
+        $rootScope.private[data.senderId].gotNewMessage = true;
+        $rootScope.private[data.senderId].newMessageCount++;
+      }
+      $scope.autoScrollById(data.senderId);
     });
     socket.on('send:room:message', function (data) {
+      var bool = (data.room !== $rootScope.activeRooms[$scope.selectedActiveRoomIndex]);
+      $log.log(bool);
       $rootScope.rooms[data.room].messages.push({
         senderName: data.senderName,
         senderId: data.senderId,
         message: data.message,
         self: false,
         chatroom: false,
-        dateSent: data.dateSent
+        dateSent: data.dateSent,
+        newMessage: bool
       });
-      autoScrollById('roomMessagesBox');
+      if(data.room !== $rootScope.activeRooms[$scope.selectedActiveRoomIndex]) {
+        $rootScope.rooms[data.room].gotNewMessage = true;
+        $rootScope.rooms[data.room].newMessageCount++;
+      }
+      $scope.autoScrollById('room:'+data.room);
     });
     socket.on('user:disconnected', function (data) {
       if($rootScope.private[data.senderId]) {
         $rootScope.private[data.senderId].disabled = true;
         $rootScope.private[data.senderId].messages.push({
-          senderName: 'Chatower',
+          senderName: 'Chastle',
           senderId: '#',
           message: data.senderName + ' has disconnected',
           self: false,
@@ -119,9 +145,15 @@ angular.module('chastle')
       }
       //expand on this
     });
-    socket.on('error', function (data) {
-      $log.error(data);
+    socket.on('error', function (error) {
+      $log.error(error);
+      if (error.type == "UnauthorizedError" || error.code == "invalid_token") {
+        // redirect user to login page perhaps?
+        $log.log("User's token has expired");
+      }
     });
+
+    socket.noMoreEvents();
 
     // Private helpers
     // ===============
@@ -140,7 +172,9 @@ angular.module('chastle')
             messages: [],
             disabled: false,
             isChatTabOpened:true,
-            senderName: giveMeUserPublicProfileUsingId(key)
+            senderName: giveMeUserPublicProfileUsingId(key),
+            gotNewMessage: false,
+            newMessageCount: 0
           }
         }
         $rootScope.private[key].messages.push({
@@ -149,9 +183,10 @@ angular.module('chastle')
           message: $scope.privateMessageInput[key],
           self: true,
           chatroom: false,
-          dateSent: newDate
+          dateSent: newDate,
+          newMessage: false
         });
-        autoScrollById(key);
+        $scope.autoScrollById(key);
       }
       // clear message box
       $scope.privateMessageInput[key] = '';
@@ -171,9 +206,10 @@ angular.module('chastle')
           message: $scope.roomMessageInput[key],
           self: true,
           chatroom: false,
-          dateSent: newDate
+          dateSent: newDate,
+          newMessage: false
         });
-        autoScrollById('roomMessagesBox');
+        $scope.autoScrollById('room:'+key);
       }
 
       // clear message box
@@ -181,11 +217,15 @@ angular.module('chastle')
     };
     $scope.newRoom = '';
     $scope.joinRoom = function(room) {
+      if (room === '') return;
       socket.emit('join:room', {room: room}, function() {
         if (!$rootScope.rooms[room] || !$rootScope.rooms[room].userIsParticipating ) {
-          $rootScope.rooms[room]={};
-          $rootScope.rooms[room].messages = [];
-          $rootScope.rooms[room].userIsParticipating = true;
+          $rootScope.rooms[room] = {
+            messages : [],
+            userIsParticipating : true,
+            gotNewMessage : false,
+            newMessageCount: 0
+          }
           $rootScope.activeRooms.push(room);
           $scope.newRoom = '';
         }
@@ -219,16 +259,19 @@ angular.module('chastle')
     $scope.selectedActiveRoomIndex = 0;
     $scope.selectActiveRoom = function(index) {
       $scope.selectedActiveRoomIndex = index;
+      $scope.autoScrollById('room:'+$rootScope.activeRooms[index]);
     };
 
     //More private helpers
     var giveMeUserPublicProfileUsingId = function(userId) {
       return User.show({id: userId});
     };
-    var autoScrollById = function(elementId) {
-      setTimeout(function(){
-        document.getElementById(elementId).scrollTop = document.getElementById(elementId).scrollHeight;
-      },0);
+    $scope.autoScrollById = function(elementId) {
+      $timeout(function(){
+        if(document.getElementById(elementId)) {
+          document.getElementById(elementId).scrollTop = document.getElementById(elementId).scrollHeight;
+        }
+      },0,false);
     };
     $scope.usersListOption = 0;
 
@@ -243,6 +286,33 @@ angular.module('chastle')
         $scope.usersListOption = 1;
         $scope.displayedUsersList = $rootScope.rooms[$rootScope.activeRooms[$scope.selectedActiveRoomIndex]].users
       }
+    };
+    $scope.cancelNewRoomMessage = function (room) {
+      $log.log($rootScope.rooms[room]);
+      $rootScope.rooms[room].gotNewMessage = false;
+      $rootScope.rooms[room].newMessageCount = 0;
+      $timeout(function() {
+        if(!$rootScope.rooms[room]) return;
+        for (var i = ($rootScope.rooms[room].messages.length-1); i > -1; i--) {
+          if(!$rootScope.rooms[room].messages[i].newMessage) {
+            $log.log('i = '+i);
+            return;
+          }
+          $rootScope.rooms[room].messages[i].newMessage = false;
+        }
+      }, 5000, true);
+      $log.log($rootScope.rooms[room]);
+    };
+    $scope.cancelNewPrivateMessage = function (_id) {
+      $rootScope.private[_id].gotNewMessage = false;
+      $rootScope.private[_id].newMessageCount = 0;
+      $timeout(function() {
+        if(!$rootScope.private[_id]) return;
+        for (var i = ($rootScope.private[_id].messages.length-1); i > -1; i--) {
+          if(!$rootScope.private[_id].messages[i].newMessage) return;
+          $rootScope.private[_id].messages[i].newMessage = false;
+        }
+      },2000,true);
     };
     
     /* reeimplementation of the filter function

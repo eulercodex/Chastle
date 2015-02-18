@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('chastle')
-  .controller('navbarCtrl', function ($scope, $location, Auth) {
+  .controller('navbarCtrl', function ($scope, $location, Auth,$log,socket,$rootScope) {
     $scope.menu = [{
       'title': 'Home',
       'link': '/'
@@ -13,6 +13,11 @@ angular.module('chastle')
     $scope.getCurrentUser = Auth.getCurrentUser;
 
     $scope.logout = function() {
+      socket.dealloc();
+      $rootScope.rooms = undefined;
+      $rootScope.private = undefined;
+      $rootScope.activeRooms = undefined;
+      $rootScope.roomsArrayToBeFiltered = undefined;
       Auth.logout();
       $location.path('/login');
     };

@@ -1,10 +1,10 @@
 <div ng-include="'templates/navbar.html'"></div>
 <div class="container-fluid">
 	<div class="row">
-		<div class="col-sm-4">
+		<div class="col-sm-4 col-md-3 col-md-offset-1">
 			<h4>Rooms</h4>
 			<form ng-submit='joinRoom(newRoom)' class="form-inline">
-				<input style="width: 100%;" placeholder='Create room' ng-model='newRoom' class="form-control"/>
+				<input style="width: 100%;" placeholder='Create rooms' ng-model='newRoom' class="form-control"/>
 			</form>
 			<div id="roomsBox" class="overflowable">
 				<div class="roomsList clearfix" ng-repeat="room in roomsArrayToBeFiltered | filter: searchTerm | orderBy:'-numberOfUsers'">
@@ -13,30 +13,28 @@
 					<button ng-show="rooms[room.room].userIsParticipating" ng-click="leaveRoom(room.room)" class="btn btn-danger btn-xs pull-right">Leave</button>
 				</div>
 			</div>
-			<input style="width: 100%;" placeholder='Search for a room' ng-model='searchTerm' class="form-control"/>
+			<input ng-show="roomsArrayToBeFiltered.length" style="width: 100%;" placeholder='Filter out rooms' ng-model='searchTerm' class="form-control"/>
 		</div>
-		<div class= "col-sm-6">
+		<div class= "col-sm-5 col-md-4">
 			<h4>Room Messages</h4>
-			<ul ng-show="activeRooms.length" class="nav nav-tabs">
-				<li role="presentation" ng-repeat="room in activeRooms" ng-class="{active : $index === selectedActiveRoomIndex}" ng-click="selectActiveRoom($index)">
-					<a>
-						<span>{{room}}&nbsp</span>
-						<button ng-click="leaveRoom(room)" type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-					</a>
-				</li>
-			</ul>
-			<div id="roomMessagesBox" class="overflowable">
-				<div class="message clearfix" ng-repeat='message in rooms[activeRooms[selectedActiveRoomIndex]].messages'>
+			<div class="navig clearfix">
+				<div class="navig-tabs pull-left" ng-repeat="room in activeRooms" ng-click="selectActiveRoom($index);cancelNewRoomMessage(room);" ng-class="{'navig-tabs-active':$index === selectedActiveRoomIndex,'navig-tabs-nonactive':($index !== selectedActiveRoomIndex)&& !rooms[room].gotNewMessage,'navig-tabs-nonactive-new':($index !== selectedActiveRoomIndex)&& rooms[room].gotNewMessage}"> 
+					<span>{{room}}&nbsp</span><span ng-show="rooms[room].newMessageCount" class="badge">{{rooms[room].newMessageCount}}</span>
+					<button ng-click="leaveRoom(room)" type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				</div>
+			</div>
+			<div id="{{'room:'+activeRooms[selectedActiveRoomIndex]}}" class="overflowable roomMessagesBox">
+				<div class="message clearfix" ng-repeat="message in rooms[activeRooms[selectedActiveRoomIndex]].messages">
 					<div class="text-center"><small>{{message.dateSent | date: "EEE, MMM d, yy 'at' h:mm:ss a"}}</small></div> 
 					<span ng-hide="message.self" class="clearfix"><small>{{message.senderName}}</small></span>
-					<div ng-class="{'bubble': !message.self,'bubble-self':message.self}">{{message.message}}</div>
+					<div ng-class="{'bubble': !message.self,'bubble-self':message.self,'newMessage':rooms[activeRooms[selectedActiveRoomIndex]].messages[$index].newMessage,'notNewMessage':!rooms[activeRooms[selectedActiveRoomIndex]].messages[$index].newMessage && !message.self}">{{message.message}}</div>
 				</div>
 			</div>
 			<form ng-submit='sendRoomMessage(activeRooms[selectedActiveRoomIndex])' class="form-inline">
 				<input style="width: 100%;" ng-model='roomMessageInput[activeRooms[selectedActiveRoomIndex]]' class="form-control" placeholder="Type message" ng-disabled="activeRooms.length === 0"/>
 			</form>
 		</div>
-		<div class= "col-sm-2">
+		<div class= "col-sm-3 col-md-3 col-md-offset-*-1">
 			<h4>Users</h4>
 			<div class="btn-group btn-group-justified" role="group" ng-hide="activeRooms.length === 0" aria-label="...">
 				<div class="btn-group" role="group">
@@ -56,8 +54,9 @@
 	<!--Private Messages implementation-->
 	<div class="privateMsgTabContainer">
 		<div class="privateMsgTab pull-left" ng-repeat="(key,value) in private">
-			<div ng-hide="value.isChatTabOpened" class="privateMsgTabHead">
-				<div ng-click="value.isChatTabOpened = !value.isChatTabOpened">{{value.user.name}}</div>
+			<div ng-hide="value.isChatTabOpened" class="privateMsgTabHead" ng-class="{'privateMsgTabHead-new':value.gotNewMessage}">
+				<div ng-click="value.isChatTabOpened=!value.isChatTabOpened;cancelNewPrivateMessage(key);autoScrollById(key);">{{value.user.name}}</div>
+				<span ng-show="true" class="badge">{{value.newMessageCount}}</span>
 				<button ng-click="closePrivateMessage(key)" type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 			</div>
 
@@ -67,10 +66,10 @@
 					<button ng-click="closePrivateMessage(key)" type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 				</div>
 				<div class="privateMsgTabContentScrollable" id="{{key}}">
-					<div class="message clearfix" ng-repeat='message in private[key].messages'>
-						<div class="text-center"><small>{{message.dateSent | date: "EEE, MMM d, yy 'at' h:mm:ss a"}}</small></div> 
-						<span ng-hide="message.self" class="clearfix"><small>{{message.senderName}}</small></span>
-						<div ng-class="{'bubble': !message.self,'bubble-self':message.self}">{{message.message}}</div>
+					<div class="message clearfix" ng-repeat='messagesItem in private[key].messages'>
+						<div class="text-center"><small>{{messagesItem.dateSent | date: "EEE, MMM d, yy 'at' h:mm:ss a"}}</small></div> 
+						<span ng-hide="messagesItem.self" class="clearfix"><small>{{messagesItem.senderName}}</small></span>
+						<div ng-class="{'bubble':!messagesItem.self,'bubble-self':messagesItem.self,'newMessage':messagesItem.newMessage,'notNewMessage':!messagesItem.newMessage && !messagesItem.self}"}>{{messagesItem.message}}</div>
 					</div>
 				</div>
 				<div>
@@ -81,5 +80,5 @@
 			</div>
 		</div>
 	</div>
-	
+
 </div>
