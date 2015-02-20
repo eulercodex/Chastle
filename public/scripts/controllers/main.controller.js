@@ -96,7 +96,8 @@ angular.module('chastle')
           disabled: false,
           isChatTabOpened:false,
           user: giveMeUserPublicProfileUsingId(data.senderId),
-          newMessageCount: 0
+          newMessageCount: 0,
+          isTyping: false
         };
         $scope.privateMessageInput[data.senderId]='';
       }
@@ -145,6 +146,51 @@ angular.module('chastle')
       }
       //expand on this
     });
+    socket.on('started typing', function(data) {
+      switch (data.type) {
+        case 'private':
+        privateStartedTypingHandler(data.senderId);
+        break;
+        case 'rooms':
+        publicStartedTypingHandler({senderId:data.senderId,senderName:data.senderName});
+        break;
+      }
+    });
+    socket.on('stopped typing', function(data) {
+      switch (data.type) {
+        case 'private':
+        privateStoppedTypingHandler(data.senderId);
+        break;
+        case 'rooms':
+        publicStoppedTypingHandler({senderId:data.senderId,senderName:data.senderName});
+        break;
+      }
+    });
+
+    var privateStartedTypingHandler = function (senderId) {
+      
+      if ($rootScope.private[senderId]) {
+        $log.log('private started');
+        $rootScope.private[senderId].isTyping = true;
+        $log.log($rootScope.private[senderId].isTyping);
+      }
+    };
+    var privateStoppedTypingHandler = function (senderId) {
+      
+      if ($rootScope.private[senderId]) {
+        $log.log('private stopped');
+        $rootScope.private[senderId].isTyping = false;
+        $log.log($rootScope.private[senderId].isTyping);
+      }
+
+    };
+    var publicStartedTypingHandler = function (user) {
+
+    };
+    var publicStoppedTypingHandler = function (user) {
+
+    };
+
     socket.on('error', function (error) {
       $log.error(error);
       if (error.type == "UnauthorizedError" || error.code == "invalid_token") {
@@ -172,9 +218,10 @@ angular.module('chastle')
             messages: [],
             disabled: false,
             isChatTabOpened:true,
-            senderName: giveMeUserPublicProfileUsingId(key),
+            user: giveMeUserPublicProfileUsingId(key),
             gotNewMessage: false,
-            newMessageCount: 0
+            newMessageCount: 0,
+            isTyping: false
           }
         }
         $rootScope.private[key].messages.push({
@@ -250,7 +297,10 @@ angular.module('chastle')
           messages: [],
           disabled: false,
           isChatTabOpened: true,
-          user: giveMeUserPublicProfileUsingId(userId)
+          user: giveMeUserPublicProfileUsingId(userId),
+          gotNewMessage: false,
+          newMessageCount:0,
+          isTyping: false
         }
       }
     };

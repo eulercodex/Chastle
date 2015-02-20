@@ -148,20 +148,22 @@ function onConnect(socket) {
     });
   });
 
-  /*** Has not been implemented yet
-  socket.on('typing',function (data,cb) {
-    socket.to(data.receiverId).emit('typing',{
+  socket.on('started typing',function (data) {
+    console.log('started typing');
+    socket.to(data.receiverId).emit('started typing',{
       senderId: socket.decoded_token._id,
-      senderName: socket.decoded_token.name
+      senderName: socket.decoded_token.name,
+      type: data.type
     });
   });
-  socket.on('stopped typing',function (data,cb) {
+  socket.on('stopped typing',function (data) {
+    console.log('stopped typing');
     socket.to(data.receiverId).emit('stopped typing',{
       senderId: socket.decoded_token._id,
-      senderName: socket.decoded_token.name
+      senderName: socket.decoded_token.name,
+      type: data.type
     });
   });
-*/
 }
 
 module.exports = function (socketio) {
