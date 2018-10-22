@@ -16,8 +16,10 @@ var path = require('path');
 var config = require('./environment');
 var passport = require('passport');
 var session = require('express-session');
-var mongoStore = require('connect-mongo')(session);
+var connectRedis = require('connect-redis');
 var mongoose = require('mongoose');
+var redis = require('redis');
+var RedisStore = connectRedis(session);
 
 module.exports = function(app) {
   var env = app.get('env'); //same as process.env.NODE_ENV
@@ -32,13 +34,18 @@ module.exports = function(app) {
   app.use(cookieParser());
   app.use(passport.initialize());
 
-  // Persist sessions with mongoStore
-  // We need to enable sessions for passport twitter because its an oauth 1.0 strategy
+  // Persist sessions with MongoStore / sequelizeStore
+  // We need to enable sessions for passport-twitter because it's an
+  // oauth 1.0 strategy
+  var redisClient = redis.createClient();
+  redisClient.on('error', function(err) {
+    console.error(`Redis connection error: ${err}`);
+  });
   app.use(session({
     secret: config.secrets.session,
-    resave: true,
     saveUninitialized: true,
-    store: new mongoStore({ mongoose_connection: mongoose.connection })
+    resave: false,
+    store: new RedisStore({ client: redisClient })
   }));
   
   if ('production' === env) {
