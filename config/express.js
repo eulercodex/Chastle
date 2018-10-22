@@ -37,7 +37,12 @@ module.exports = function(app) {
   // Persist sessions with MongoStore / sequelizeStore
   // We need to enable sessions for passport-twitter because it's an
   // oauth 1.0 strategy
-  var redisClient = redis.createClient();
+  if ('production' === env) { //rough hack because of heroko and also because I'm feeling tired and lazy
+    var redisClient = redis.createClient(process.env.REDIS_URL);
+  }
+  else {
+    var redisClient = redis.createClient();
+  }
   redisClient.on('error', function(err) {
     console.error(`Redis connection error: ${err}`);
   });
