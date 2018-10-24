@@ -3,7 +3,7 @@
 var User = require('./user.model');
 //var passport = require('passport');
 var config = require('../../config/environment');
-var jwt = require('jsonwebtoken');
+var auth = require('../../auth/auth.service');
 
 var validationError = function(res, err) {
   return res.status(422).json(err);
@@ -28,7 +28,7 @@ exports.create = function (req, res, next) {
   newUser.provider = 'local';
   newUser.save(function(err, user) {
     if (err) return validationError(res, err);
-    var token = jwt.sign(user.token, config.secrets.session, { expiresInMinutes: 60*5 });
+    var token = auth.signToken(user.token);
     res.json({ token: token });
   });
 };

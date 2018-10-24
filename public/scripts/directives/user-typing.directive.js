@@ -38,7 +38,7 @@
       restrict: 'A',
       link: function(scope, element, attrs) {
         scope.$watch(attrs.ngModel, function(value) {
-          if(value.length!==0) updateTyping(attrs.typingId,attrs.typingType);
+          if(value && value.length!==0) updateTyping(attrs.typingId,attrs.typingType);
         });
         /* JQLite implementation
         element.on('input', function() {
